@@ -821,7 +821,45 @@ footer {
         height: 220px;
     }
 }
+/* PAYMENT METHOD DESIGN */
 
+.payment-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.payment-section h3 {
+    color: #172554;
+    margin: 0 0 15px;
+}
+
+.payment-section label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 14px;
+    margin: 10px 0;
+    color: #172033;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.payment-section label:has(input:checked) {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.payment-section input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2563eb;
+}
 </style>
 </head>
 
@@ -930,7 +968,28 @@ footer {
             </div>
 
         </div>
+        <!-- PAYMENT METHOD -->
+<div class="payment-section">
+    <h3>Payment Method</h3>
 
+    <label>
+        <input type="radio" name="paymentMethod"
+            value="upi">
+        UPI Payment
+    </label>
+
+    <label>
+        <input type="radio" name="paymentMethod"
+            value="cod" checked>
+        Cash on Delivery
+    </label>
+
+    <label>
+        <input type="radio" name="paymentMethod"
+            value="razorpay">
+        Razorpay Online Payment
+    </label>
+</div>
         <h3 id="cartTotal">মোট: ₹0</h3>
 
         <button id="orderButton" onclick="placeOrder()">
@@ -1584,7 +1643,17 @@ function renderCart() {
 // ===================================
 
 async function placeOrder() {
+const paymentMethod = document.querySelector(
+    'input[name="paymentMethod"]:checked'
+)?.value || "cod";
 
+if (paymentMethod !== "cod") {
+    alert(
+        "Online Payment এখনো চালু হয়নি। " +
+        "অনুগ্রহ করে Cash on Delivery নির্বাচন করুন।"
+    );
+    return;
+}
     if (cart.length === 0) {
         alert("তোমার Cart খালি!");
         return;
