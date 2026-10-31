@@ -1,0 +1,466 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Amar Store</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px 15px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px #00000012;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1d4ed8;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 9px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .secondary {
+            background: #475569;
+        }
+
+        .switch {
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .switch a {
+            color: #2563eb;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        .home {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>🛍️ Amar Store</h2>
+
+    <!-- REGISTER -->
+    <div id="registerBox">
+
+        <h3>নতুন Account তৈরি করো</h3>
+
+        <input
+            type="text"
+            id="regName"
+            placeholder="তোমার সম্পূর্ণ নাম"
+        >
+
+        <input
+            type="tel"
+            id="regPhone"
+            placeholder="মোবাইল নম্বর"
+        >
+
+        <input
+            type="email"
+            id="regEmail"
+            placeholder="Email Address"
+        >
+
+        <input
+            type="password"
+            id="regPassword"
+            placeholder="Password (কমপক্ষে ৬ অক্ষর)"
+        >
+
+        <button id="registerButton" onclick="registerUser()">
+            Create Account
+        </button>
+
+        <div class="switch">
+            আগে Account আছে?
+            <a onclick="showLogin()">Login করো</a>
+        </div>
+
+    </div>
+
+
+    <!-- LOGIN -->
+    <div id="loginBox" class="hidden">
+
+        <h3>Customer Login</h3>
+
+        <input
+            type="email"
+            id="loginEmail"
+            placeholder="Email Address"
+        >
+
+        <input
+            type="password"
+            id="loginPassword"
+            placeholder="Password"
+        >
+
+        <button id="loginButton" onclick="loginUser()">
+            Login
+        </button>
+
+        <div class="switch">
+            Account নেই?
+            <a onclick="showRegister()">Register করো</a>
+        </div>
+
+    </div>
+
+
+    <!-- ACCOUNT -->
+    <div id="accountBox" class="hidden">
+
+        <h3>My Account</h3>
+
+        <p id="userEmail"></p>
+
+        <p id="userName"></p>
+
+        <button onclick="goToOrders()">
+            📦 My Orders
+        </button>
+
+        <button class="secondary" onclick="logoutUser()">
+            Logout
+        </button>
+
+    </div>
+
+
+    <p id="message"></p>
+
+    <a class="home" href="index.html">
+        ← Shopping Page-এ ফিরে যাও
+    </a>
+
+</div>
+
+
+<script>
+
+// SUPABASE CONFIGURATION
+
+const SUPABASE_URL =
+"https://ttrmiokfqpkmwncuvfdd.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_P4bc1iCNpgBfWRkQFt0pIg_W7WoKhEc";
+
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+// MESSAGE
+
+function showMessage(message, type = "") {
+
+    const box = document.getElementById("message");
+
+    box.textContent = message;
+    box.className = type;
+
+}
+
+
+// SHOW REGISTER
+
+function showRegister() {
+
+    document.getElementById("registerBox")
+        .classList.remove("hidden");
+
+    document.getElementById("loginBox")
+        .classList.add("hidden");
+
+    showMessage("");
+
+}
+
+
+// SHOW LOGIN
+
+function showLogin() {
+
+    document.getElementById("loginBox")
+        .classList.remove("hidden");
+
+    document.getElementById("registerBox")
+        .classList.add("hidden");
+
+    showMessage("");
+
+}
+
+
+// REGISTER
+
+async function registerUser() {
+
+    const name =
+        document.getElementById("regName").value.trim();
+
+    const phone =
+        document.getElementById("regPhone").value.trim();
+
+    const email =
+        document.getElementById("regEmail").value.trim();
+
+    const password =
+        document.getElementById("regPassword").value;
+
+    if (!name || !phone || !email || !password) {
+        showMessage("সব তথ্য পূরণ করো।", "error");
+        return;
+    }
+
+    if (password.length < 6) {
+        showMessage("Password কমপক্ষে ৬ অক্ষরের হতে হবে।", "error");
+        return;
+    }
+
+    const button =
+        document.getElementById("registerButton");
+
+    button.disabled = true;
+    button.textContent = "Account তৈরি হচ্ছে...";
+
+    const { data, error } = await db.auth.signUp({
+
+        email: email,
+        password: password,
+
+        options: {
+            data: {
+                full_name: name,
+                phone: phone
+            },
+            emailRedirectTo: window.location.href
+        }
+
+    });
+
+    button.disabled = false;
+    button.textContent = "Create Account";
+
+    if (error) {
+        showMessage(error.message, "error");
+        return;
+    }
+
+    if (data.session) {
+
+        showMessage(
+            "Account সফলভাবে তৈরি হয়েছে!",
+            "success"
+        );
+
+        showAccount(data.user);
+
+    } else {
+
+        showMessage(
+            "Registration সফল হয়েছে। Email Inbox থেকে Verification Link-এ Click করে Account চালু করো।",
+            "success"
+        );
+
+    }
+
+}
+
+
+// LOGIN
+
+async function loginUser() {
+
+    const email =
+        document.getElementById("loginEmail").value.trim();
+
+    const password =
+        document.getElementById("loginPassword").value;
+
+    if (!email || !password) {
+        showMessage("Email ও Password লিখো।", "error");
+        return;
+    }
+
+    const button =
+        document.getElementById("loginButton");
+
+    button.disabled = true;
+    button.textContent = "Login হচ্ছে...";
+
+    const { data, error } =
+        await db.auth.signInWithPassword({
+
+            email: email,
+            password: password
+
+        });
+
+    button.disabled = false;
+    button.textContent = "Login";
+
+    if (error) {
+        showMessage(error.message, "error");
+        return;
+    }
+
+    showAccount(data.user);
+
+}
+
+
+// SHOW ACCOUNT
+
+function showAccount(user) {
+
+    document.getElementById("registerBox")
+        .classList.add("hidden");
+
+    document.getElementById("loginBox")
+        .classList.add("hidden");
+
+    document.getElementById("accountBox")
+        .classList.remove("hidden");
+
+    document.getElementById("userEmail").textContent =
+        "Email: " + (user.email || "");
+
+    document.getElementById("userName").textContent =
+        "নাম: " + (user.user_metadata?.full_name || "Customer");
+
+    showMessage("তুমি সফলভাবে Login করেছ।", "success");
+
+}
+
+
+// LOGOUT
+
+async function logoutUser() {
+
+    const { error } = await db.auth.signOut();
+
+    if (error) {
+        showMessage(error.message, "error");
+        return;
+    }
+
+    document.getElementById("accountBox")
+        .classList.add("hidden");
+
+    showRegister();
+
+    showMessage("Logout সফল হয়েছে।", "success");
+
+}
+
+
+// MY ORDERS
+
+function goToOrders() {
+
+    window.location.href = "my-orders.html";
+
+}
+
+
+// CHECK EXISTING SESSION
+
+async function checkSession() {
+
+    const { data, error } = await db.auth.getSession();
+
+    if (error) {
+        showMessage(error.message, "error");
+        return;
+    }
+
+    if (data.session) {
+        showAccount(data.session.user);
+    }
+
+}
+
+
+checkSession();
+
+</script>
+
+</body>
+</html>
