@@ -1649,31 +1649,42 @@ function renderCart() {
 // CUSTOMER ORDER CHECKOUT
 // ===================================
 
-async function placeOrder() {
-const paymentMethod = document.querySelector(
-    'input[name="paymentMethod"]:checked'
-)?.value || "cod";
 
-if (paymentMethod !== "cod") {
-    alert(
-        "Online Payment এখনো চালু হয়নি। " +
-        "অনুগ্রহ করে Cash on Delivery নির্বাচন করুন।"
-    );
-    return;
-}
+async function placeOrder() {
+
+    // Customer Login Check
+    const { data: sessionData, error: sessionError } =
+        await db.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+        alert("অর্ডার করার আগে My Account থেকে Login করো।");
+        window.location.href =
+            "https://subho100703.github.io/Amar-stores/account.html";
+        return;
+    }
+
+    // Payment Check
+    const paymentMethod = document.querySelector(
+        'input[name="paymentMethod"]:checked'
+    )?.value || "cod";
+
+    if (paymentMethod !== "cod") {
+        alert(
+            "Online Payment এখনো চালু হয়নি। " +
+            "অনুগ্রহ করে Cash on Delivery নির্বাচন করো।"
+        );
+        return;
+    }
+
+    // Cart Check
     if (cart.length === 0) {
         alert("তোমার Cart খালি!");
         return;
     }
 
-    const customerName =
-        $("customerName").value.trim();
-
-    const phone =
-        $("customerPhone").value.trim();
-
-    const address =
-        $("customerAddress").value.trim();
+    const customerName = $("customerName").value.trim();
+    const phone = $("customerPhone").value.trim();
+    const address = $("customerAddress").value.trim();
 
     if (!customerName || !phone || !address) {
         alert("নাম, মোবাইল নম্বর ও ঠিকানা পূরণ করো।");
@@ -1689,7 +1700,6 @@ if (paymentMethod !== "cod") {
 
     orderButton.disabled = true;
     orderButton.textContent = "অর্ডার পাঠানো হচ্ছে...";
-    console.log("CART DATA:", cart);
 
     const p_items = cart.map(item => ({
         product_id: item.id,
@@ -1710,19 +1720,13 @@ if (paymentMethod !== "cod") {
     orderButton.textContent = "অর্ডার করুন";
 
     if (error) {
-
-        alert(
-            "অর্ডার জমা হয়নি!\n" +
-            error.message
-        );
-
+        alert("অর্ডার জমা হয়নি!\n" + error.message);
         return;
     }
 
     cart = [];
 
     updateCart();
-
     renderCart();
 
     $("customerName").value = "";
