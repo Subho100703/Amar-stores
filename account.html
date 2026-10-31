@@ -345,6 +345,7 @@ async function registerUser() {
 
 // LOGIN
 
+
 async function loginUser() {
 
     const email =
@@ -366,24 +367,21 @@ async function loginUser() {
 
     const { data, error } =
         await db.auth.signInWithPassword({
-
             email: email,
             password: password
-
         });
 
-    button.disabled = false;
-    button.textContent = "Login";
-
     if (error) {
+        button.disabled = false;
+        button.textContent = "Login";
         showMessage(error.message, "error");
         return;
     }
 
-    showAccount(data.user);
-
+    // Login successful: go to main shopping page
+    window.location.href =
+        "https://subho100703.github.io/Amar-stores/index.html";
 }
-
 
 // SHOW ACCOUNT
 
